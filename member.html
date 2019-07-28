@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Trimitra Marvel</title>
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+    </head>
+    <body>
+
+    <div id="app" class="container">
+    <!-- conditoonal -->
+
+    <!--  apabila form bernilai true akan menampilkan di bawah ini-->
+
+    <!-- add -->
+    <div v-if="form">
+      <h3 style="margin-top: 20px">Input Data Member</h3>
+      <div>
+        <input type="hidden" v-model="items.id">
+        <div class="form-group">
+          <label>Nama Member</label>
+          <input type="text" id="nm" class="form-control" required v-model="items.username">
+        </div>
+
+        <div class="form-group">
+          <label>Alamat</label>
+          <input type="text" id="alt" class="form-control" required v-model="items.alamat">
+        </div>
+
+        <div class="form-group">
+          <label>No HP</label>
+          <input type="number" id="hp" class="form-control" required v-model="items.no_hp">
+        </div>
+
+        <div class="form-group">
+          <label>Tanggal Lahir</label>
+          <input type="date" id="tgl" class="form-control" required v-model="items.tanggal_lahir">
+        </div>
+
+        <div class="form-group">
+          <button class="btn btn-warning" v-on:click="form = !form">
+          back
+          </button>
+          <button class="btn btn-primary" v-on:click="simpan()" v-show="!updateSubmit">
+          input
+          </button>
+          <button class="btn btn-primary" v-show="updateSubmit" v-on:click="update(items)">Update</button>
+        </div>
+      </div>
+    </div>
+    <!-- end add -->
+
+    <!-- apabila form bernilaifalse akan menampilkan di bawah ini -->
+    <div v-if="!form">
+    <h3>
+      Trimitra Marvel
+    </h3>
+    <hr>
+    <button class="btn btn-primary float-right" v-on:click="form = !form">
+      Add
+    </button> <br> <br>
+
+      <table class="table table-striped table-dark">
+      <tr>
+        <th>ID</th>
+        <th>Nama</th>
+  			<th>Alamat</th>
+  			<th>Tanggal Lahir</th>
+  			<th>Nomor HP</th>
+  			<th>Opsi</th>
+      </tr>
+
+      <tr v-for="member in items" :key="member.id">
+        <td>{{member.id}}</td>
+        <!-- <td>User</td> -->
+        <td> <a :href="url(member)" class="link">{{member.username}}</a> </td>
+        <td>{{member.alamat}}</td>
+        <td>{{member.no_hp}}</td>
+        <td>{{member.tanggal_lahir}}</td>
+
+        <td>
+            <button type="button" class="btn btn-default" @click="edt(member)" v-on:click="form = !form">Edit</button>
+            <button type="button" class="btn btn-danger" @Click="del(member)">Delete</button>
+        </td>
+
+      </tr>
+
+      </table>
+  </div>
+
+</div>
+
+<script src="js/axios.min.js"></script>
+<script src="js/vue.js"></script>
+<script>
+  var example1 = new Vue({
+    el : '#app',
+    data : {
+      items : [],
+      id:'',
+      username:'',
+
+      form: false,
+
+    updateSubmit: false
+
+    },
+    created(){
+      this.fetchmember();
+    },
+    methods : {
+      fetchmember(){
+      // get data dari resource get-produk
+      var self = this;
+      axios.get('http://127.0.0.1:8000/api/get-member')
+        .then(function(response) {
+          // body...
+          console.log(response.data);
+          // mengambil data di response dan taruh ke querry
+          self.items = response.data;
+        })
+        .catch(function(error){
+          console.log(error)
+        })
+        // metode fornis
+
+      },
+      simpan() {
+        var nm1 = document.getElementById('nm').value
+        var alt1 = document.getElementById('alt').value
+        var hp1 = document.getElementById('hp').value
+        var tg1 = document.getElementById('tgl').value
+
+        var self = this
+        axios.post('http://127.0.0.1:8000/api/pst-member',{
+          username : nm1,
+          alamat : alt1,
+          no_hp : hp1,
+          tanggal_lahir : tg1,
+        })
+        .then(function (response){
+          console.log(response);
+          if (response.data.status == true) {
+            self.form = !self.form
+            self.fetchmember();
+          }else{
+            alert("Failed")
+          }
+        })
+        .then(function (error){
+          console.log(error);
+        })
+      },
+      del(member){
+        axios.delete('http://127.0.0.1:8000/api/dellmember/' + member.id)
+        .then(response => {
+          this.fetchmember();
+          // let index = this.member.indexOf(items.nama_member)
+          let index = this.member.indexOf(items.username)
+          this.member.splice(index,1)
+        })
+      },
+      edt(member){
+       this.updateSubmit = true
+       this.items.id = member.id
+       this.items.username = member.username
+       this.items.alamat = member.alamat
+       this.items.no_hp = member.no_hp
+       this.items.tanggal_lahir = member.tanggal_lahir
+      },
+      update(items){
+        var self = this
+        return axios.put('http://127.0.0.1:8000/api/upt-member/'+items.id, {
+          username : this.items.username,
+          alamat : this.items.alamat,
+          no_hp : this.items.no_hp,
+          tanggal_lahir : this.items.tanggal_lahir,
+        })
+        .then(response=>{
+          self.form = !self.form
+          self.fetchmember();
+        })
+       .catch((err) => {
+        console.log(err);
+      })
+      },
+      url(member){
+        return 'member_detail.html?id='+member.id
+      }
+    },
+    computed :{
+    // pageurl(){
+    //     return 'member_detail.html/' + self.id;
+    // }
+    }
+  })
+</script>
+  </body>
+</html>

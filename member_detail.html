@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <!-- <meta name="csrf-token" content="{{ csrf_token() }}"> -->
+    <title></title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <link rel="stylesheet" type="text/css" href="css/app.css">
+    <script src="js/app.js"></script>
+  </head>
+  <body>
+  <div id="app" class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h2>Detail Member</h2>
+        <hr>
+        <a href="member.html" class="btn btn-warning">
+          <strong>
+  				~(=w= ~)
+  			</strong></a>
+
+        <button class="btn btn-primary float-right" data-toggle="modal" data-target="#inputbuku">
+          Peminjaman Buku
+        </button>
+      </div>
+    </div>
+
+    <hr>
+    <div>
+      <h5>ID Member :</h5>
+      <h5>Nama Member : </h5>
+      <h5>Tanggal Lahir : </h5>
+      <h5>Kontak : </h5>
+      <h5>Dibuat Pada : </h5>
+    </div>
+
+    <table class="table">
+  		<tr>
+  			<th>Id</th>
+  			<th>Nama Buku</th>
+  			<th>Jumlah</th>
+  			<th>Tanggal</th>
+  			<th>Opsi</th>
+  		</tr>
+
+
+  		<tr v-for="c in items">
+  			  <td>{{c.id}}</td>
+  			  <td>{{c.buku.nama_buku}}</td>
+  			  <td>{{c.buku.qty}}</td>
+  			  <td>{{c.created_at}}</td>
+  			  <td></td>
+  			<td>
+          <div>
+            <button class="btn btn-primary" data-toggle="modal" data-target="#kembalianbuku">
+            Kembalikan Buku
+            </button><br><br>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+<!--  -->
+<div class="modal fate" id="inputbuku">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Tambah Data peminjaman Buku
+        </h5>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="admin_id" value="5">
+
+        <input type="hidden" id="member_id" value="">
+
+        <div class="form-group">
+          <label>Nama Buku</label>
+          <div>
+            <select class="form-control" id="buku_id" required>
+              <option value="">Pilih Nama Buku</option>
+              <div v-for="c in items">
+              <option  v-bind:value="{{c.buku.id}}"><h5>{c.buku.nama_buku}</h5></option>
+              </div>
+
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <button type="button" class="btn btn-danger"
+          data-dismiss="modal">Batal</button>
+          <button class="btn btn-primary" v-on:click="simpan()">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!--  -->
+
+<!--  -->
+<div class="modal fade" id="kembalianbuku">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Kembalikan Buku
+        </h5>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="admin_id" value="5">
+        <input type="hidden" id="buku_id" value="">
+
+        <input type="hidden" name="member_id" value="">
+
+
+        <div class="form-group">
+          <button type="button" class="btn btn-warning"
+          data-dismiss="modal">Batal</button>
+          <button class="btn btn-primary" type="submit">Kembalikan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+<script src="js/axios.min.js"></script>
+<script src="js/vue.js"></script>
+<!-- <script src="js/app.js"></script> -->
+<script>
+  var example1 = new Vue({
+    el : '#app',
+    data : {
+      items : [],
+      id:'',
+      form: false
+
+    },
+    created(){
+      this.fetchmember();
+    },
+    mounated: {
+
+    },
+    methods : {
+      fetchmember($id){
+        const urlParams = new URLSearchParams(window.location.search);
+        console.log(urlParams.has('id')); // true
+        $id = urlParams.get('id');
+      // get data dari resource get-produk
+      var self = this;
+      axios.get('http://127.0.0.1:8000/api/gtpeminjaman/'+$id)
+        .then(function(response) {
+          // body...
+          console.log(response.data);
+          // mengambil data di response dan taruh ke querry
+          self.items = response.data;
+        })
+        .catch(function(error){
+          console.log(error)
+        })
+        // metode fornis
+
+      },
+      simpan() {
+        var adm1 = document.getElementById('admin_id').value
+        var mbm1 = document.getElementById('member_id').value
+        var bk1 = document.getElementById('buku_id').value
+
+
+        var self = this
+        axios.post('http://127.0.0.1:8000/api/pst-member',{
+          admin_id : adm1,
+          member_id : mbm1,
+          buku_id : bk1,
+        })
+        .then(function (response){
+          console.log(response);
+          if (response.data.status == true) {
+            self.form = !self.form
+            self.fetchmember();
+          }else{
+            alert("Failed")
+          }
+        })
+        .then(function (error){
+          console.log(error);
+        })
+      }
+
+
+    },
+    computed :{
+    pageurl(){
+        return 'member_detail.html?id=' + self.id;
+    }
+    }
+  })
+</script>
+</body>
+</html>
