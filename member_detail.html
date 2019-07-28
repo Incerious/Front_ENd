@@ -81,9 +81,11 @@
           <div>
             <select class="form-control" id="buku_id" required>
               <option value="">Pilih Nama Buku</option>
-              <div v-for="c in items">
+              <option v-for="c in items" v-bind:value="c.buku.id">{{c.buku.nama_buku}}</option>
+              
+<!--               <div v-for="c in items">
               <option  v-bind:value="{{c.buku.id}}"><h5>{c.buku.nama_buku}</h5></option>
-              </div>
+              </div> -->
 
             </select>
           </div>
